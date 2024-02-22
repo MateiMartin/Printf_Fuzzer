@@ -95,7 +95,7 @@ for i in range(args.num):
             continue
 
         # canary
-        if (str(result)[-2] == '0' and str(result)[-3] == '0' and str(result).split('.')[1][0] != '5 ' and i != ofset_for_printf and str(result).split('.')[1][0] != 'f' and str(result).split('.')[1][1] != 'f' and str(result).count('0') <= 4):
+        if (str(result)[-2] == '0' and str(result)[-3] == '0' and str(result).split('.')[1][0] != '5 ' and i != ofset_for_printf and str(result).split('.')[1][0] != 'f' and str(result).count('0') <= 4):
             potential_canary.append(i)
             print_color(i, "red")
             continue
