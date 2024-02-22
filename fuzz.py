@@ -12,23 +12,23 @@ parser = argparse.ArgumentParser(
 
 
 parser.add_argument(
-    "-remote", help="Activate remote server mode --> python3 fuzz.py -remote -ip 0.0.0.0 -port 9999 -cb /path/to/binarry", action="store_true")
+    "-remote", help="Activate remote server mode --> python3 fuzz.py -remote -ip 0.0.0.0 -port 9999 -cb /path/to/binary", action="store_true")
 
 parser.add_argument(
-    "-local", help="Activate local server mode --> python3 fuzz.py -local -cb /path/to/binarry", action="store_true")
+    "-local", help="Activate local server mode --> python3 fuzz.py -local -cb /path/to/binary", action="store_true")
 
 
 parser.add_argument(
-    "-ip", help="IP address for remote server (works with remote mode)")
+    "-ip", help="IP address for the remote server (works with remote mode)")
 parser.add_argument(
-    "-port", help="Port for remote server (works with remote mode)", type=int)
+    "-port", help="Port for the remote server (works with remote mode)", type=int)
 
 
 parser.add_argument(
     "-cb", help="Context Binary for pwntools (always set)", type=str)
 
 parser.add_argument(
-    "-num", help="Number of addreses to be printed", type=int, default=100)
+    "-num", help="Number of addresses to be printed", type=int, default=100)
 
 args = parser.parse_args()
 
