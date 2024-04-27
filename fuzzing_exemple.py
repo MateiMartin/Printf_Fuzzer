@@ -1,3 +1,4 @@
+#32-bit
 from pwn import *
 from fuzz import printf
 
@@ -14,7 +15,7 @@ for i in range(1, 100):
 
 
 pprint(arr)
-#['AAAAc','AAAA0','AAAA80491e6','AAAAf7ff5b9c','AAAA1','AAAAf7f37720','AAAA41414141','AAAA6c243825','AAAA78',...]
+#arr = ['AAAAc','AAAA0','AAAA80491e6','AAAAf7ff5b9c','AAAA1','AAAAf7f37720','AAAA41414141','AAAA6c243825','AAAA78',...]
  
-# a=printf(arr)
-# a.main()
+a=printf(arr)
+a.main()
